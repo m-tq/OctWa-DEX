@@ -736,7 +736,7 @@ export function SwapPage() {
                     <span className="text-xs text-muted">
                       Bal: {swapDirection === 'OCT_TO_ETH' 
                         ? (balanceLoading ? '...' : displayOctBalance.toLocaleString(undefined, { maximumFractionDigits: 6 }))
-                        : (ethBalanceLoading ? '...' : displayEthBalance.toFixed(6))
+                        : (ethBalanceLoading ? '...' : formatDisplayAmount(displayEthBalance, 6))
                       }
                     </span>
                     <button
@@ -794,7 +794,7 @@ export function SwapPage() {
                 </div>
                 <div className="flex gap-2 items-center">
                   <div className="flex-1 text-lg font-bold text-foreground">
-                    {quote ? quote.estimatedOut.toFixed(6) : '0.000000'}
+                    {quote ? formatDisplayAmount(quote.estimatedOut, 6) : '0.000000'}
                   </div>
                   <span className="text-sm font-medium text-foreground px-2 py-0.5 bg-secondary">
                     {swapDirection === 'OCT_TO_ETH' ? 'ETH' : 'OCT'}
@@ -843,9 +843,9 @@ export function SwapPage() {
                     ⚠️ Insufficient Liquidity
                   </div>
                   <div className="text-xs text-destructive/80 mt-1">
-                    Available: {quoteLiquidity?.available?.toFixed(6) ?? '?'} {swapDirection === 'OCT_TO_ETH' ? 'ETH' : 'OCT'}
+                    Available: {quoteLiquidity?.available != null ? formatDisplayAmount(quoteLiquidity.available, 6) : '?'} {swapDirection === 'OCT_TO_ETH' ? 'ETH' : 'OCT'}
                     <br />
-                    Required: {quoteLiquidity?.required?.toFixed(6) ?? '?'} {swapDirection === 'OCT_TO_ETH' ? 'ETH' : 'OCT'}
+                    Required: {quoteLiquidity?.required != null ? formatDisplayAmount(quoteLiquidity.required, 6) : '?'} {swapDirection === 'OCT_TO_ETH' ? 'ETH' : 'OCT'}
                   </div>
                 </div>
               )}

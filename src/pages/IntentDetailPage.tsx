@@ -175,7 +175,7 @@ export function IntentDetailPage() {
                     {targetLabel}
                   </div>
                   <div className="mt-2 text-lg font-bold">
-                    {intent.amountOut ? `${intent.amountOut.toFixed(isOctToEth ? 6 : 4)} ${targetLabel}` : '—'}
+                    {intent.amountOut ? `${formatDisplayAmount(intent.amountOut, isOctToEth ? 6 : 4)} ${targetLabel}` : '—'}
                   </div>
                   <div className="text-xs text-muted">{targetChain}</div>
                 </div>
@@ -252,7 +252,7 @@ export function IntentDetailPage() {
                   <div>
                     <span className="text-muted">Amount:</span>
                     <span className="ml-2 font-medium">
-                      {intent.amountOut ? `${intent.amountOut.toFixed(isOctToEth ? 6 : 4)} ${targetLabel}` : '—'}
+                      {intent.amountOut ? `${formatDisplayAmount(intent.amountOut, isOctToEth ? 6 : 4)} ${targetLabel}` : '—'}
                     </span>
                   </div>
                   {intent.targetTxHash ? (
