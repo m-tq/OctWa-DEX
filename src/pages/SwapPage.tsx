@@ -33,6 +33,16 @@ function formatAmount(value: number): string {
   return fixed.replace(/\.?0+$/, '');
 }
 
+/**
+ * Format display amount dengan fixed decimals
+ * Handle baik string maupun number dari backend
+ */
+function formatDisplayAmount(value: number | string, decimals: number): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return '0';
+  return num.toFixed(decimals);
+}
+
 interface BalanceData {
   address: string;
   balance: number;
@@ -86,8 +96,8 @@ function SwapHistory() {
             </div>
             <div className="text-sm text-foreground">
               {isOctToEth 
-                ? `${swap.payload.amountIn.toFixed(4)} OCT → ${(swap.amountOut || swap.payload.minAmountOut).toFixed(6)} ETH`
-                : `${swap.payload.amountIn.toFixed(6)} ETH → ${(swap.amountOut || swap.payload.minAmountOut).toFixed(4)} OCT`
+                ? `${formatDisplayAmount(swap.payload.amountIn, 4)} OCT → ${formatDisplayAmount(swap.amountOut || swap.payload.minAmountOut, 6)} ETH`
+                : `${formatDisplayAmount(swap.payload.amountIn, 6)} ETH → ${formatDisplayAmount(swap.amountOut || swap.payload.minAmountOut, 4)} OCT`
               }
             </div>
             <div className="text-xs text-muted mt-0.5 font-mono truncate">
@@ -865,8 +875,8 @@ export function SwapPage() {
                   : currentSwapStatus !== 'idle'
                   ? getStatusLabel(currentSwapStatus)
                   : swapDirection === 'OCT_TO_ETH'
-                  ? `Swap ${quote?.amountIn.toFixed(4)} OCT → ${quote?.estimatedOut.toFixed(6)} ETH`
-                  : `Swap ${quote?.amountIn.toFixed(6)} ETH → ${quote?.estimatedOut.toFixed(4)} OCT`}
+                  ? `Swap ${formatDisplayAmount(quote?.amountIn ?? 0, 4)} OCT → ${formatDisplayAmount(quote?.estimatedOut ?? 0, 6)} ETH`
+                  : `Swap ${formatDisplayAmount(quote?.amountIn ?? 0, 6)} ETH → ${formatDisplayAmount(quote?.estimatedOut ?? 0, 4)} OCT`}
               </Button>
             </div>
           </Panel>

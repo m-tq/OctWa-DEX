@@ -1,6 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
+/**
+ * Format display amount dengan fixed decimals
+ * Handle baik string maupun number dari backend
+ */
+function formatDisplayAmount(value: number | string, decimals: number): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return '0';
+  return num.toFixed(decimals);
+}
+
 interface SwapData {
   id: string;
   direction: 'OCT_TO_ETH' | 'ETH_TO_OCT';
@@ -264,10 +274,10 @@ export function ExplorerPage() {
                           </span>
                         </td>
                         <td className="px-3 py-2 font-mono text-xs">
-                          {swap.amountIn.toFixed(isOctToEth ? 4 : 6)} {isOctToEth ? 'OCT' : 'ETH'}
+                          {formatDisplayAmount(swap.amountIn, isOctToEth ? 4 : 6)} {isOctToEth ? 'OCT' : 'ETH'}
                         </td>
                         <td className="px-3 py-2 font-mono text-xs">
-                          {swap.amountOut ? `${swap.amountOut.toFixed(isOctToEth ? 6 : 4)} ${isOctToEth ? 'ETH' : 'OCT'}` : '-'}
+                          {swap.amountOut ? `${formatDisplayAmount(swap.amountOut, isOctToEth ? 6 : 4)} ${isOctToEth ? 'ETH' : 'OCT'}` : '-'}
                         </td>
                         <td className="px-3 py-2 font-mono text-xs text-muted" title={swap.sourceAddress}>
                           {truncateAddress(swap.sourceAddress)}

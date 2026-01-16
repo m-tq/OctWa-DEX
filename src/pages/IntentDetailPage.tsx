@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getOctraTxUrl, getSepoliaTxUrl } from '../config';
 
+/**
+ * Format display amount dengan fixed decimals
+ * Handle baik string maupun number dari backend
+ */
+function formatDisplayAmount(value: number | string, decimals: number): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return '0';
+  return num.toFixed(decimals);
+}
+
 interface IntentDetail {
   intentId: string;
   direction: 'OCT_TO_ETH' | 'ETH_TO_OCT';
@@ -146,7 +156,7 @@ export function IntentDetailPage() {
                     {sourceLabel}
                   </div>
                   <div className="mt-2 text-lg font-bold">
-                    {intent.amountIn.toFixed(isOctToEth ? 4 : 6)} {sourceLabel}
+                    {formatDisplayAmount(intent.amountIn, isOctToEth ? 4 : 6)} {sourceLabel}
                   </div>
                   <div className="text-xs text-muted">{sourceChain}</div>
                 </div>
@@ -196,7 +206,7 @@ export function IntentDetailPage() {
                   </div>
                   <div>
                     <span className="text-muted">Amount:</span>
-                    <span className="ml-2 font-medium">{intent.amountIn.toFixed(isOctToEth ? 4 : 6)} {sourceLabel}</span>
+                    <span className="ml-2 font-medium">{formatDisplayAmount(intent.amountIn, isOctToEth ? 4 : 6)} {sourceLabel}</span>
                   </div>
                   {intent.sourceTxHash ? (
                     <div>
