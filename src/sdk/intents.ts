@@ -23,6 +23,34 @@ function getHeaders(contentType = false): HeadersInit {
 // =============================================================================
 
 /**
+ * Format small numbers to be more readable
+ * e.g., 5.9e-7 → "0.00000059"
+ */
+function formatReadableNumber(value: number | string): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return String(value);
+  
+  // For very small numbers, use fixed notation with enough decimals
+  if (Math.abs(num) < 0.0001 && num !== 0) {
+    // Find how many decimal places we need
+    const str = num.toFixed(18).replace(/0+$/, '');
+    return str;
+  }
+  
+  return num.toString();
+}
+
+/**
+ * Format error messages to make numbers more readable
+ */
+function formatErrorMessage(message: string): string {
+  // Match scientific notation like 5.9e-7 or 1.23e+10
+  return message.replace(/(\d+\.?\d*e[+-]?\d+)/gi, (match) => {
+    return formatReadableNumber(parseFloat(match));
+  });
+}
+
+/**
  * Get quote for OCT → ETH swap
  */
 export async function getQuote(amountIn: number, slippageBps: number = 50): Promise<Quote> {
@@ -35,7 +63,8 @@ export async function getQuote(amountIn: number, slippageBps: number = 50): Prom
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || `Quote failed: ${response.status}`);
+    const errorMsg = error.error || `Quote failed: ${response.status}`;
+    throw new Error(formatErrorMessage(errorMsg));
   }
 
   const quote = await response.json();
@@ -56,7 +85,8 @@ export async function getEthToOctQuote(amountIn: number, slippageBps: number = 5
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || `Quote failed: ${response.status}`);
+    const errorMsg = error.error || `Quote failed: ${response.status}`;
+    throw new Error(formatErrorMessage(errorMsg));
   }
 
   const quote = await response.json();
