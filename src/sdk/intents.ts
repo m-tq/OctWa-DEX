@@ -18,6 +18,15 @@ function getHeaders(contentType = false): HeadersInit {
   return headers;
 }
 
+/**
+ * Convert string or number to number safely
+ */
+function toNumber(value: number | string): number {
+  if (typeof value === 'number') return value;
+  const num = parseFloat(value);
+  return isNaN(num) ? 0 : num;
+}
+
 // =============================================================================
 // OCT → ETH FUNCTIONS
 // =============================================================================
@@ -107,8 +116,8 @@ export function createIntentPayload(
     intentType: 'swap',
     fromAsset: 'OCT',
     toAsset: 'ETH',
-    amountIn: quote.amountIn,
-    minAmountOut: quote.minAmountOut,
+    amountIn: toNumber(quote.amountIn),
+    minAmountOut: toNumber(quote.minAmountOut),
     targetChain: 'ethereum_sepolia',
     targetAddress,
     expiry: Date.now() + 5 * 60 * 1000, // 5 minutes
@@ -132,8 +141,8 @@ export function createEthToOctIntentPayload(
     intentType: 'swap',
     fromAsset: 'ETH',
     toAsset: 'OCT',
-    amountIn: quote.amountIn,
-    minAmountOut: quote.minAmountOut,
+    amountIn: toNumber(quote.amountIn),
+    minAmountOut: toNumber(quote.minAmountOut),
     targetChain: 'octra_mainnet',
     targetAddress: targetOctraAddress,
     expiry: Date.now() + 5 * 60 * 1000, // 5 minutes

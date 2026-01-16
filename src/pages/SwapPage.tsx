@@ -23,12 +23,19 @@ import type { SwapRecord, SwapStatus, SwapDirection } from '../types/intent';
 /**
  * Format number tanpa scientific notation (e.g., 6e-7 → "0.0000006")
  * Penting untuk mengirim amount ke wallet
+ * Handle baik string maupun number dari backend
  */
-function formatAmount(value: number): string {
-  if (value === 0) return '0';
+function formatAmount(value: number | string): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (num === 0 || isNaN(num)) return '0';
+  
+  // Jika sudah string dan bukan scientific notation, return langsung
+  if (typeof value === 'string' && !value.includes('e') && !value.includes('E')) {
+    return value;
+  }
   
   // Gunakan toFixed dengan precision tinggi
-  const fixed = value.toFixed(18);
+  const fixed = num.toFixed(18);
   // Hapus trailing zeros dan decimal point jika tidak perlu
   return fixed.replace(/\.?0+$/, '');
 }
@@ -818,7 +825,7 @@ export function SwapPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted">Fee</span>
-                    <span className="text-foreground">{quote.feeBps / 100}%</span>
+                    <span className="text-foreground">{(typeof quote.feeBps === 'string' ? parseFloat(quote.feeBps) : quote.feeBps) / 100}%</span>
                   </div>
                   <div className="pt-1.5 border-t border-border">
                     <div className="text-muted mb-0.5">Escrow</div>

@@ -37,15 +37,16 @@ export interface QuoteLiquidity {
 }
 
 // Quote from backend API
+// Note: Backend may return numbers as strings for precision
 export interface Quote {
   from: 'OCT' | 'ETH';
   to: 'ETH' | 'OCT';
-  amountIn: number;
-  estimatedOut: number;
-  minAmountOut: number;
-  rate: number;
-  feeBps: number;
-  slippageBps: number;
+  amountIn: number | string;
+  estimatedOut: number | string;
+  minAmountOut: number | string;
+  rate: number | string;
+  feeBps: number | string;
+  slippageBps: number | string;
   expiresIn: number;
   escrowAddress: string;
   network: TargetChain;
