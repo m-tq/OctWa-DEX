@@ -20,6 +20,19 @@ import {
 import { SWAP_CIRCLE, SWAP_METHODS, ETH_NETWORK_LABEL } from '../config';
 import type { SwapRecord, SwapStatus, SwapDirection } from '../types/intent';
 
+/**
+ * Format number tanpa scientific notation (e.g., 6e-7 → "0.0000006")
+ * Penting untuk mengirim amount ke wallet
+ */
+function formatAmount(value: number): string {
+  if (value === 0) return '0';
+  
+  // Gunakan toFixed dengan precision tinggi
+  const fixed = value.toFixed(18);
+  // Hapus trailing zeros dan decimal point jika tidak perlu
+  return fixed.replace(/\.?0+$/, '');
+}
+
 interface BalanceData {
   address: string;
   balance: number;
@@ -410,7 +423,7 @@ export function SwapPage() {
 
       const txPayload = {
         to: quote.escrowAddress,
-        amount: payload.amountIn,
+        amount: formatAmount(payload.amountIn),
         message: JSON.stringify({ payload }),
       };
 
@@ -520,7 +533,7 @@ export function SwapPage() {
       
       const evmTxPayload = {
         to: quote.escrowAddress,
-        amount: payload.amountIn.toString(),
+        amount: formatAmount(payload.amountIn),
         data: intentDataHex,
       };
 
