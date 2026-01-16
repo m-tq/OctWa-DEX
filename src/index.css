@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  border-radius: 0 !important;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Fira Code', monospace;
+  background-color: #1a1a1a;
+  color: #e5e5e5;
+}
+
+input, select, textarea {
+  background-color: #1a1a1a !important;
+  border: 1px solid #383838;
+  color: #e5e5e5;
+  font-family: 'Fira Code', monospace;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #0000db;
+  box-shadow: 0 0 0 1px #0000db;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #383838;
+}
+
+::selection {
+  background-color: rgba(0, 0, 219, 0.3);
+}
