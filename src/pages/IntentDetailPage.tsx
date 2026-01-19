@@ -1,16 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getOctraTxUrl, getSepoliaTxUrl } from '../config';
-
-/**
- * Format display amount dengan fixed decimals
- * Handle baik string maupun number dari backend
- */
-function formatDisplayAmount(value: number | string, decimals: number): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(num)) return '0';
-  return num.toFixed(decimals);
-}
+import { getOctraTxUrl, getSepoliaTxUrl, INTENTS_API_URL } from '@/config';
+import { formatDisplayAmount } from '@/utils/format';
 
 interface IntentDetail {
   intentId: string;
@@ -24,7 +15,7 @@ interface IntentDetail {
   amountOut?: number;
 }
 
-const INTENTS_API_URL = import.meta.env.VITE_INTENTS_API_URL || 'http://localhost:3456';
+const API_URL = INTENTS_API_URL;
 
 export function IntentDetailPage() {
   const { intentId } = useParams<{ intentId: string }>();
@@ -40,7 +31,7 @@ export function IntentDetailPage() {
       setError(null);
       
       try {
-        const response = await fetch(`${INTENTS_API_URL}/swap/${intentId}`);
+        const response = await fetch(`${API_URL}/swap/${intentId}`);
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error('Intent not found');

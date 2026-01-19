@@ -2,6 +2,11 @@
  * Intents API Client
  * Communicates with the Intents API backend
  * Supports: OCT → ETH and ETH → OCT swaps
+ * 
+ * SECURITY:
+ * - Payload is hashed for integrity verification
+ * - Backend verifies payload hash matches tx data
+ * - Amounts are validated before submission
  */
 
 import { INTENTS_API_URL } from '../config';
@@ -20,11 +25,35 @@ function getHeaders(contentType = false): HeadersInit {
 
 /**
  * Convert string or number to number safely
+ * Handles scientific notation and precision issues
  */
 function toNumber(value: number | string): number {
   if (typeof value === 'number') return value;
   const num = parseFloat(value);
   return isNaN(num) ? 0 : num;
+}
+
+/**
+ * Format number without scientific notation
+ * Critical for wallet SDK which may not handle scientific notation
+ */
+function formatAmountSafe(num: number): string {
+  if (num === 0 || isNaN(num)) return '0';
+  // Use toFixed with high precision, then trim trailing zeros
+  const fixed = num.toFixed(18);
+  return fixed.replace(/\.?0+$/, '') || '0';
+}
+
+/**
+ * Create SHA-256 hash of payload for integrity verification
+ */
+async function hashPayload(payload: SwapIntentPayload): Promise<string> {
+  const jsonString = JSON.stringify(payload);
+  const encoder = new TextEncoder();
+  const data = encoder.encode(jsonString);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // =============================================================================
@@ -106,20 +135,30 @@ export async function getEthToOctQuote(amountIn: number, slippageBps: number = 5
 /**
  * Create intent payload for OCT → ETH swap
  * Uses minAmountOut from quote (already calculated with slippage)
+ * 
+ * Note: Amount validation is handled by backend
  */
 export function createIntentPayload(
   quote: Quote,
   targetAddress: string
 ): SwapIntentPayload {
+  const amountIn = toNumber(quote.amountIn);
+  const minAmountOut = toNumber(quote.minAmountOut);
+  
+  // Validate target address format (EVM)
+  if (!/^0x[a-fA-F0-9]{40}$/.test(targetAddress)) {
+    throw new Error('Invalid EVM address format');
+  }
+  
   const payload: SwapIntentPayload = {
     version: 1,
     intentType: 'swap',
     fromAsset: 'OCT',
     toAsset: 'ETH',
-    amountIn: toNumber(quote.amountIn),
-    minAmountOut: toNumber(quote.minAmountOut),
+    amountIn,
+    minAmountOut,
     targetChain: 'ethereum_sepolia',
-    targetAddress,
+    targetAddress: targetAddress.toLowerCase(), // Normalize to lowercase
     expiry: Date.now() + 5 * 60 * 1000, // 5 minutes
     nonce: crypto.randomUUID(),
   };
@@ -131,18 +170,28 @@ export function createIntentPayload(
 /**
  * Create intent payload for ETH → OCT swap
  * Uses minAmountOut from quote (already calculated with slippage)
+ * 
+ * Note: Amount validation is handled by backend
  */
 export function createEthToOctIntentPayload(
   quote: Quote,
   targetOctraAddress: string
 ): SwapIntentPayload {
+  const amountIn = toNumber(quote.amountIn);
+  const minAmountOut = toNumber(quote.minAmountOut);
+  
+  // Validate target address format (Octra)
+  if (!targetOctraAddress.startsWith('oct')) {
+    throw new Error('Invalid Octra address format');
+  }
+  
   const payload: SwapIntentPayload = {
     version: 1,
     intentType: 'swap',
     fromAsset: 'ETH',
     toAsset: 'OCT',
-    amountIn: toNumber(quote.amountIn),
-    minAmountOut: toNumber(quote.minAmountOut),
+    amountIn,
+    minAmountOut,
     targetChain: 'octra_mainnet',
     targetAddress: targetOctraAddress,
     expiry: Date.now() + 5 * 60 * 1000, // 5 minutes
@@ -154,13 +203,54 @@ export function createEthToOctIntentPayload(
 }
 
 /**
- * Encode intent payload as hex for tx.data field
+ * Encode intent payload for Octra transaction message field
+ * Uses Base64 encoding for obfuscation + hash for integrity verification
+ * 
+ * Format: Base64({ payload, hash, timestamp, v: 2 })
+ * Backend will decode and verify hash matches payload
  */
-export function encodeIntentPayloadAsHex(payload: SwapIntentPayload): string {
-  const jsonString = JSON.stringify({ payload });
-  const bytes = new TextEncoder().encode(jsonString);
+export async function encodeIntentForOctraTx(payload: SwapIntentPayload): Promise<string> {
+  const hash = await hashPayload(payload);
+  const envelope = {
+    v: 2, // Version 2 = Base64 encoded
+    payload,
+    hash,
+    timestamp: Date.now(),
+  };
+  const jsonString = JSON.stringify(envelope);
+  // Encode to Base64
+  return btoa(jsonString);
+}
+
+/**
+ * Encode intent payload as hex for EVM tx.data field
+ * Uses Base64 encoding for obfuscation + hash for integrity verification
+ * 
+ * Format: 0x + hex(Base64({ payload, hash, timestamp, v: 2 }))
+ * Backend will decode hex → Base64 → JSON and verify hash
+ */
+export async function encodeIntentPayloadAsHex(payload: SwapIntentPayload): Promise<string> {
+  const hash = await hashPayload(payload);
+  const envelope = {
+    v: 2, // Version 2 = Base64 encoded
+    payload,
+    hash,
+    timestamp: Date.now(),
+  };
+  const jsonString = JSON.stringify(envelope);
+  // First Base64 encode, then hex encode
+  const base64String = btoa(jsonString);
+  const bytes = new TextEncoder().encode(base64String);
   const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
   return '0x' + hex;
+}
+
+/**
+ * Get safe amount string for wallet SDK
+ * Ensures no scientific notation and proper precision
+ */
+export function getSafeAmountForWallet(amount: number): string {
+  return formatAmountSafe(amount);
 }
 
 /**

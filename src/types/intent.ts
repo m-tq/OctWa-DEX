@@ -36,6 +36,23 @@ export interface QuoteLiquidity {
   sufficient: boolean;
 }
 
+// Oracle price info
+export interface OraclePrices {
+  spotPrice: number | string;
+  emaPrice: number | string;
+  twapPrice: number | string;
+}
+
+// USD price info
+export interface UsdPrices {
+  ethPrice: number | string;
+  octPrice: number | string;
+  amountInUsd?: number | string;
+  estimatedOutUsd?: number | string;
+  source?: string;
+  updatedAt?: number;
+}
+
 // Quote from backend API
 // Note: Backend may return numbers as strings for precision
 export interface Quote {
@@ -45,12 +62,16 @@ export interface Quote {
   estimatedOut: number | string;
   minAmountOut: number | string;
   rate: number | string;
+  effectiveRate?: number | string;
+  priceImpact?: number | string;
   feeBps: number | string;
   slippageBps: number | string;
   expiresIn: number;
   escrowAddress: string;
   network: TargetChain;
   liquidity: QuoteLiquidity;
+  oracle?: OraclePrices;
+  usd?: UsdPrices | null;
 }
 
 // Swap record (local tracking)

@@ -1,15 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-
-/**
- * Format display amount dengan fixed decimals
- * Handle baik string maupun number dari backend
- */
-function formatDisplayAmount(value: number | string, decimals: number): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(num)) return '0';
-  return num.toFixed(decimals);
-}
+import { INTENTS_API_URL } from '@/config';
+import { formatDisplayAmount, truncateAddress, formatTime } from '@/utils/format';
+import { POLLING_INTERVAL_MS, DEFAULT_PAGE_SIZE } from '@/config/constants';
 
 interface SwapData {
   id: string;
@@ -39,8 +32,7 @@ interface ExplorerResponse {
   swaps: SwapData[];
 }
 
-const INTENTS_API_URL = import.meta.env.VITE_INTENTS_API_URL || 'http://localhost:3456';
-const POLL_INTERVAL_MS = 5000; // 5 seconds
+const POLL_INTERVAL_MS = POLLING_INTERVAL_MS;
 
 export function ExplorerPage() {
   const [data, setData] = useState<ExplorerResponse | null>(null);
@@ -57,7 +49,7 @@ export function ExplorerPage() {
     if (showLoading) setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ page: page.toString(), limit: '15' });
+      const params = new URLSearchParams({ page: page.toString(), limit: String(DEFAULT_PAGE_SIZE) });
       if (statusFilter) params.append('status', statusFilter);
       if (directionFilter) params.append('direction', directionFilter);
       
@@ -93,15 +85,6 @@ export function ExplorerPage() {
       }
     };
   }, [autoRefresh, fetchExplorer]);
-
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString();
-  };
-
-  const truncateAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-  };
 
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
